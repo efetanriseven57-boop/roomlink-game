@@ -43,6 +43,18 @@
           "androidAppId": "ca-app-pub-8243323417740323~4778084886",
           "iosAppId": "ca-app-pub-3940256099942544~1458002511"
         }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "packagingOptions": {
+              "pickFirst": [
+                "META-INF/versions/9/OSGI-INF/MANIFEST.MF"
+              ]
+            }
+          }
+        }
       ]
     ],
     "experiments": {
