@@ -2,6 +2,7 @@
   "name": "@workspace/roomlink-game",
   "version": "1.0.4",
   "private": true,
+  "packageManager": "pnpm@10.26.1",
   "main": "expo-router/entry",
   "scripts": {
     "dev": "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY=$CLERK_PUBLISHABLE_KEY node server/dev-server.js",
