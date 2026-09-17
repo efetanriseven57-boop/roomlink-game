@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+Disallow: /auth
+Disallow: /game
+Disallow: /home
+Disallow: /settings
+Disallow: /profile
+Disallow: /leaderboard
+Disallow: /(tabs)/
+Disallow: /status
+Disallow: /store-assets/
+Sitemap: https://ad-mob-play-store--efetanriseven.replit.app/sitemap.xml
