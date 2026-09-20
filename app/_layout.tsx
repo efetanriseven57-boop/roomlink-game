@@ -11,7 +11,7 @@ import { ClerkLoaded, ClerkLoading, ClerkProvider } from "@clerk/expo";
 import { tokenCache } from "@clerk/expo/token-cache";
 import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect } from "react";
-import { View } from "react-native";
+import { Text, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
@@ -66,7 +66,36 @@ export default function RootLayout() {
   if (!fontsLoaded && !fontError) return null;
 
   const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
-  if (!publishableKey) throw new Error("EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY is not configured");
+  if (!publishableKey) {
+    return (
+      <SafeAreaProvider>
+        <View
+          style={{
+            flex: 1,
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: "#0a0015",
+            padding: 24,
+          }}
+        >
+          <Text
+            style={{
+              color: "#00ff88",
+              fontSize: 20,
+              fontWeight: "700",
+              marginBottom: 12,
+              textAlign: "center",
+            }}
+          >
+            Uygulama yapılandırması eksik
+          </Text>
+          <Text style={{ color: "#c0c9ea", fontSize: 15, lineHeight: 22, textAlign: "center" }}>
+            Giriş hizmeti şu anda başlatılamıyor. Lütfen uygulamanın güncel sürümünü kontrol edin.
+          </Text>
+        </View>
+      </SafeAreaProvider>
+    );
+  }
 
   return (
     <SafeAreaProvider>
