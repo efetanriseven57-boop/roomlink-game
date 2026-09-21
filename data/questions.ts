@@ -349,11 +349,10 @@ const facts: Record<QuestionLocale, LocaleFacts> = {
   },
 };
 
-/* Authored localized prompts follow the same first-four source-fact order as
- * universalQuestions.  Options whose meaning is language-specific remain in
- * the existing authored fact records; numerical, formula, year, and proper
- * noun answers are intentionally unchanged. */
-const localizedPrompts: Record<Exclude<QuestionLocale, "en">, Record<BranchId, Record<Difficulty, readonly [string, string, string, string]>>> = {
+/* Authored localized prompts follow the same source-fact order as
+ * universalQuestions. Questions without an authored translation keep the
+ * source prompt instead of being removed from the playable pool. */
+const localizedPrompts: Record<Exclude<QuestionLocale, "en">, Record<BranchId, Record<Difficulty, readonly string[]>>> = {
   tr: {
     0:{easy:["12 + 8 işleminin sonucu nedir?","15 - 7 işleminin sonucu nedir?","6 × 7 işleminin sonucu nedir?","25 ÷ 5 işleminin sonucu nedir?"],medium:["sin(30°) değeri nedir?","cos(60°) değeri nedir?","5! değeri nedir?","tan(45°) değeri nedir?"],hard:["∫x dx integralinin sonucu nedir?","sin x’in türevi nedir?","lim(x→0) sin(x)/x limiti nedir?","e^(iπ) + 1 ifadesinin değeri nedir?"]},
     1:{easy:["“Hello” ne demektir?","“Apple” ne demektir?","Alfabede kaç harf vardır?","“Happy” ne demektir?"],medium:["Present Continuous hangi yardımcı fiilleri kullanır?","Geçmiş zaman eki hangisidir?","“child” kelimesinin çoğulu nedir?","“Will” neyi ifade eder?"],hard:["Pragmatik neyi inceler?","Sözdizimi neyi inceler?","Fonetik neyle ilgilidir?","Morfoloji neyi inceler?"]},
@@ -446,12 +445,13 @@ function buildLocaleBank(locale: QuestionLocale): LocalizedQuestionBank {
   ([0, 1, 2, 3, 4, 5] as BranchId[]).forEach((branch) => {
     bank[branch] = {} as Record<Difficulty, LocalizedQuestion[]>;
     (["easy", "medium", "hard"] as Difficulty[]).forEach((difficulty) => {
-      const sourceFacts = universalQuestions[branch][difficulty].slice(0, 4)
+      const sourceFacts = universalQuestions[branch][difficulty]
         .map(({ q, o, c }) => [q, [o[0], o[1], o[2]], o.indexOf(c) as 0 | 1 | 2] as Fact);
       const localizedFacts = locale !== "en"
-        ? sourceFacts.map(([, sourceLabels, correctIndex], index) => {
+        ? sourceFacts.map(([sourceQuestion, sourceLabels, correctIndex], index) => {
           const labels = localizedOptionTriples[locale][branch]?.[difficulty]?.[index] ?? sourceLabels;
-          return [localizedPrompts[locale][branch][difficulty][index], labels, correctIndex] as Fact;
+          const question = localizedPrompts[locale][branch][difficulty][index] ?? sourceQuestion;
+          return [question, labels, correctIndex] as Fact;
         })
         : sourceFacts;
       bank[branch][difficulty] = (locale === "en" ? sourceFacts : localizedFacts)
@@ -490,9 +490,18 @@ export function validateLocalizedQuestionBanks(): string[] {
     ([0, 1, 2, 3, 4, 5] as BranchId[]).forEach((branch) => {
       (["easy", "medium", "hard"] as Difficulty[]).forEach((difficulty) => {
         const questions = localizedQuestionBanks[locale][branch][difficulty];
-        if (questions.length < 4) errors.push(`${locale}/${branch}/${difficulty} needs at least four questions`);
+        const sourceQuestions = universalQuestions[branch][difficulty];
+        if (questions.length !== sourceQuestions.length) {
+          errors.push(`${locale}/${branch}/${difficulty} has ${questions.length} questions; expected ${sourceQuestions.length}`);
+        }
+        const contentFingerprints = new Set<string>();
         questions.forEach((question, index) => {
           const questionOptionIds = new Set(question.options.map((option) => option.id));
+          const contentFingerprint = `${question.question}\u0000${question.options.map((option) => option.label).join("\u0000")}`;
+          if (contentFingerprints.has(contentFingerprint)) {
+            errors.push(`${locale}/${branch}/${difficulty}/${index} duplicates another question in the same pool`);
+          }
+          contentFingerprints.add(contentFingerprint);
           if (questionIds.has(question.id)) errors.push(`${locale}/${question.id} is not unique`);
           questionIds.add(question.id);
           question.options.forEach((option) => {
@@ -511,7 +520,10 @@ export function validateLocalizedQuestionBanks(): string[] {
             const english = localizedQuestionBanks.en[branch][difficulty][index];
             const sameQuestion = question.question === english.question;
             const sameOptions = question.options.every((option, optionIndex) => option.label === english.options[optionIndex]?.label);
-            if (sameQuestion && sameOptions) errors.push(`${locale}/${question.id} duplicates English content`);
+            const hasAuthoredPrompt = index < localizedPrompts[locale][branch][difficulty].length;
+            if (hasAuthoredPrompt && sameQuestion && sameOptions) {
+              errors.push(`${locale}/${question.id} duplicates English content despite having an authored translation`);
+            }
             const requiresLocalizedOptions = branch === 5 &&
               ((difficulty === "easy" && index === 1) || (difficulty === "hard" && index < 3));
             if (branch !== 1 && requiresLocalizedOptions && sameOptions) {
