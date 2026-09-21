@@ -57,7 +57,7 @@ const MIME = {
 
 const metro = spawn(
   "pnpm",
-  ["exec", "expo", "start", "--port", String(METRO_PORT)],
+  ["exec", "expo", "start", "--clear", "--port", String(METRO_PORT)],
   { cwd: projectRoot, stdio: "inherit", env: metroEnv }
 );
 metro.on("error", (err) => console.error("Failed to start Expo:", err.message));
