@@ -14,6 +14,34 @@ const STATIC_DIR = path.join(projectRoot, "web", "store-assets");
 const PUBLIC_SITE_DIR = path.join(projectRoot, "web", "public-site");
 const SITE_URL = "https://ad-mob-play-store--efetanriseven.replit.app";
 
+function getDeploymentDomain() {
+  const rawDomain =
+    process.env.REPLIT_INTERNAL_APP_DOMAIN ||
+    process.env.REPLIT_DEV_DOMAIN ||
+    process.env.EXPO_PUBLIC_DOMAIN ||
+    "";
+  if (!rawDomain) return "";
+  const withProtocol = /^https?:\/\//i.test(rawDomain)
+    ? rawDomain
+    : `https://${rawDomain}`;
+  return new URL(withProtocol).host;
+}
+
+const deploymentDomain = getDeploymentDomain();
+const clerkProxyUrl =
+  deploymentDomain && process.env.CLERK_PROXY_URL
+    ? `https://${deploymentDomain}${process.env.CLERK_PROXY_URL}`
+    : "";
+const metroEnv = {
+  ...process.env,
+  CI: "1",
+  EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY:
+    process.env.CLERK_PUBLISHABLE_KEY ||
+    process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY ||
+    "",
+  EXPO_PUBLIC_CLERK_PROXY_URL: clerkProxyUrl,
+};
+
 const MIME = {
   ".png": "image/png",
   ".jpg": "image/jpeg",
@@ -30,7 +58,7 @@ const MIME = {
 const metro = spawn(
   "pnpm",
   ["exec", "expo", "start", "--port", String(METRO_PORT)],
-  { cwd: projectRoot, stdio: "inherit", env: { ...process.env, CI: "1" } }
+  { cwd: projectRoot, stdio: "inherit", env: metroEnv }
 );
 metro.on("error", (err) => console.error("Failed to start Expo:", err.message));
 metro.on("exit", (code) => { process.exit(code || 0); });
@@ -184,6 +212,7 @@ animation:spin 1s linear infinite;margin:1.5rem auto;}
 const server = http.createServer(proxy);
 server.listen(PORT, "0.0.0.0", () => {
   console.log(`Production server on port ${PORT}, Metro on ${METRO_PORT}`);
+  console.log(`Clerk production proxy configured: ${Boolean(clerkProxyUrl)}`);
 });
 
 process.on("SIGTERM", () => { metro.kill("SIGTERM"); server.close(); process.exit(0); });
