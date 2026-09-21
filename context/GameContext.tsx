@@ -84,6 +84,8 @@ type GameContextType = {
   selectAnswer: (answer: string) => void;
   submitAnswer: () => void;
   skipPenalty: () => void;
+  pausePenalty: () => void;
+  resumePenalty: () => void;
   closeQuestion: () => void;
   endGame: (won: boolean) => void;
   clearEndGame: () => void;
@@ -145,6 +147,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const resultRecordedRef = useRef(false);
   const questionAttemptRef = useRef(0);
   const questionResolvedRef = useRef(false);
+  const penaltyPausedRef = useRef(false);
   const lastQuestionIdRef = useRef<string | null>(null);
   const appStateRef = useRef<AppStateStatus>(AppState.currentState);
 
@@ -481,7 +484,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
           });
           let penaltyLeft = 20;
           penaltyTimerRef.current = setInterval(() => {
-            if (appStateRef.current !== "active" || attemptId !== questionAttemptRef.current) return;
+            if (appStateRef.current !== "active" || penaltyPausedRef.current || attemptId !== questionAttemptRef.current) return;
             if (!sessionRef.current?.gameActive || gameEndedRef.current) {
               if (penaltyTimerRef.current) clearInterval(penaltyTimerRef.current);
               penaltyTimerRef.current = null;
@@ -562,7 +565,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         });
         let penaltyLeft = 20;
         penaltyTimerRef.current = setInterval(() => {
-          if (appStateRef.current !== "active") return;
+          if (appStateRef.current !== "active" || penaltyPausedRef.current) return;
           if (!sessionRef.current?.gameActive || gameEndedRef.current) {
             if (penaltyTimerRef.current) clearInterval(penaltyTimerRef.current);
             penaltyTimerRef.current = null;
@@ -586,6 +589,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
   const skipPenalty = useCallback(() => {
     if (!qModal.visible || !qModal.penaltyActive) return;
+    penaltyPausedRef.current = false;
     if (penaltyTimerRef.current) {
       clearInterval(penaltyTimerRef.current);
       penaltyTimerRef.current = null;
@@ -594,6 +598,14 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     setQModal((prev) => ({ ...prev, penaltyActive: false, penaltyLeft: 0, visible: false }));
     setTimeout(() => openQuestion(roomId, itemIndex), 200);
   }, [openQuestion, qModal]);
+
+  const pausePenalty = useCallback(() => {
+    penaltyPausedRef.current = true;
+  }, []);
+
+  const resumePenalty = useCallback(() => {
+    penaltyPausedRef.current = false;
+  }, []);
 
   const closeQuestion = useCallback(() => {
     questionAttemptRef.current += 1;
@@ -638,7 +650,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     <GameContext.Provider value={{
       profiles, currentUser, currentUserId, hydrated, scores, friends, session,
       questionModal: qModal, gameTimerDisplay, gameTimerState, endGameResult,
-      selectProfile, createProfile, createProfileForIdentity, logout, startGame, openQuestion, selectAnswer, submitAnswer, skipPenalty,
+      selectProfile, createProfile, createProfileForIdentity, logout, startGame, openQuestion, selectAnswer, submitAnswer, skipPenalty, pausePenalty, resumePenalty,
       closeQuestion, endGame, clearEndGame, addFriend, removeFriend, searchUsers,
     }}>
       {children}

@@ -105,7 +105,6 @@ export function useInterstitialAd() {
   const showInterstitial = useCallback((onFinished: Completion) => {
     const ad = adRef.current;
     if (!isLoaded || !ad) {
-      onFinished();
       return false;
     }
 

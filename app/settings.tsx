@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -7,10 +7,16 @@ import { useLang } from "@/context/LanguageContext";
 import { StarsBackground } from "@/components/StarsBackground";
 import { NeonButton } from "@/components/NeonButton";
 import { AdModal } from "@/components/AdModal";
-import type { BranchId } from "@/data/questions";
+import type { BranchId, QuestionLocale } from "@/data/questions";
 import { useRequireAuth } from "@/components/RequireAuth";
 
 type Diff = "easy" | "medium" | "hard";
+type PendingStart = {
+  difficulty: Diff;
+  branches: BranchId[];
+  playerName: string;
+  locale: QuestionLocale;
+};
 
 const DIFF_CONFIG = [
   { key: "easy" as Diff, color: "#2196f3", bg: "rgba(0,50,150,0.4)", label: "🟦 KOLAY\n5 Dakika" },
@@ -27,6 +33,7 @@ export default function SettingsScreen() {
   const [error, setError] = useState("");
   const [showAd, setShowAd] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
+  const pendingStartRef = useRef<PendingStart | null>(null);
   const isAuthorized = useRequireAuth();
 
   const branchNames = ta("branches");
@@ -42,15 +49,25 @@ export default function SettingsScreen() {
     setError("");
     if (!difficulty) { setError(ts("err2")); return; }
     if (branches.length === 0) { setError(ts("err3")); return; }
+    pendingStartRef.current = {
+      difficulty,
+      branches: [...branches],
+      playerName: currentUser ?? ts("player"),
+      locale: lang,
+    };
     setIsStarting(true);
     setShowAd(true);
   };
 
   const onAdDismiss = () => {
-    if (!isStarting || !difficulty || branches.length === 0) return;
     setShowAd(false);
-    const playerName = currentUser ?? ts("player");
-    startGame(difficulty!, branches, playerName, lang);
+    const pendingStart = pendingStartRef.current;
+    pendingStartRef.current = null;
+    if (!pendingStart) {
+      setIsStarting(false);
+      return;
+    }
+    startGame(pendingStart.difficulty, pendingStart.branches, pendingStart.playerName, pendingStart.locale);
     router.replace("/game");
   };
 
@@ -73,6 +90,7 @@ export default function SettingsScreen() {
                   difficulty === d.key && { backgroundColor: d.color + "44", borderWidth: 3 },
                 ]}
                 onPress={() => setDifficulty(d.key)}
+                disabled={isStarting}
                 accessibilityRole="radio"
                 accessibilityLabel={d.key === "easy" ? ts("easyBtn") : d.key === "medium" ? ts("medBtn") : ts("hardBtn")}
                 accessibilityState={{ selected: difficulty === d.key }}
@@ -91,6 +109,7 @@ export default function SettingsScreen() {
                 key={idx}
                 style={[styles.branchBtn, branches.includes(idx as BranchId) && styles.branchBtnActive]}
                 onPress={() => toggleBranch(idx as BranchId)}
+                disabled={isStarting}
                 accessibilityRole="checkbox"
                 accessibilityLabel={name}
                 accessibilityState={{ checked: branches.includes(idx as BranchId) }}
@@ -111,7 +130,7 @@ export default function SettingsScreen() {
 
         <View style={styles.btnRow}>
           <NeonButton label={ts("startBtn")} onPress={handleStart} color="green" disabled={isStarting} style={{ flex: 1 }} />
-          <NeonButton label={ts("backBtn")} onPress={() => router.back()} color="cyan" style={{ flex: 1 }} />
+          <NeonButton label={ts("backBtn")} onPress={() => router.back()} color="cyan" disabled={isStarting} style={{ flex: 1 }} />
         </View>
       </ScrollView>
 

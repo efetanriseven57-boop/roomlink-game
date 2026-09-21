@@ -3,6 +3,7 @@ import { Platform } from "react-native";
 import { getAdIds } from "@/constants/admob";
 
 type Reward = () => void;
+type Completion = (rewardEarned: boolean) => void;
 type Rewarded = {
   addAdEventListener: (event: string, listener: (...args: unknown[]) => void) => () => void;
   load: () => void;
@@ -37,6 +38,8 @@ export function useRewardedAd() {
   const [isLoaded, setIsLoaded] = useState(false);
   const adRef = useRef<Rewarded | null>(null);
   const rewardRef = useRef<Reward | null>(null);
+  const completionRef = useRef<Completion | null>(null);
+  const rewardEarnedRef = useRef(false);
 
   useEffect(() => {
     const ads = getAdsModule();
@@ -56,18 +59,30 @@ export function useRewardedAd() {
       setIsLoaded(true);
     });
     const unsubscribeReward = ad.addAdEventListener(ads.RewardedAdEventType.EARNED_REWARD, () => {
-      const grantReward = rewardRef.current;
-      rewardRef.current = null;
-      grantReward?.();
+      rewardEarnedRef.current = true;
     });
     const unsubscribeClosed = ad.addAdEventListener(ads.AdEventType.CLOSED, () => {
+      const grantReward = rewardRef.current;
+      const complete = completionRef.current;
+      const rewardEarned = rewardEarnedRef.current;
       setIsLoaded(false);
       rewardRef.current = null;
+      completionRef.current = null;
+      rewardEarnedRef.current = false;
+      if (rewardEarned) grantReward?.();
+      complete?.(rewardEarned);
       ad.load();
     });
     const unsubscribeError = ad.addAdEventListener(ads.AdEventType.ERROR, () => {
+      const grantReward = rewardRef.current;
+      const complete = completionRef.current;
+      const rewardEarned = rewardEarnedRef.current;
       setIsLoaded(false);
       rewardRef.current = null;
+      completionRef.current = null;
+      rewardEarnedRef.current = false;
+      if (rewardEarned) grantReward?.();
+      complete?.(rewardEarned);
       ad.load();
     });
 
@@ -78,20 +93,28 @@ export function useRewardedAd() {
       unsubscribeClosed();
       unsubscribeError();
       rewardRef.current = null;
+      completionRef.current = null;
+      rewardEarnedRef.current = false;
       adRef.current = null;
     };
   }, []);
 
-  const showRewarded = useCallback((onRewarded: Reward) => {
+  const showRewarded = useCallback((onRewarded: Reward, onFinished?: Completion) => {
     const ad = adRef.current;
     if (!ad || !isLoaded) return false;
     rewardRef.current = onRewarded;
+    completionRef.current = onFinished ?? null;
+    rewardEarnedRef.current = false;
     setIsLoaded(false);
     try {
       ad.show();
       return true;
     } catch {
       rewardRef.current = null;
+      const complete = completionRef.current;
+      completionRef.current = null;
+      rewardEarnedRef.current = false;
+      complete?.(false);
       ad.load();
       return false;
     }

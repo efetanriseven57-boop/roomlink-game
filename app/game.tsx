@@ -139,6 +139,18 @@ export default function GameScreen() {
       </ScrollView>
 
       <QuestionModal />
+      <Modal visible={!!endGameResult} transparent animationType="fade" statusBarTranslucent>
+        <View style={styles.completionOverlay}>
+          <View style={styles.completionCard}>
+            <Text style={styles.completionTitle}>
+              {lang === "tr" ? "Oyun tamamlandı" : "Game complete"}
+            </Text>
+            <Text style={styles.completionText}>
+              {lang === "tr" ? "Skorunuz hazırlanıyor..." : "Preparing your score..."}
+            </Text>
+          </View>
+        </View>
+      </Modal>
       <AdModal visible={showEndAd} onDismiss={handleEndAdDismiss} skipDelay={5} />
     </View>
   );
@@ -228,4 +240,24 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   inventoryEmoji: { fontSize: 24 },
+  completionOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(10,0,21,0.96)",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 24,
+  },
+  completionCard: {
+    width: "100%",
+    maxWidth: 420,
+    backgroundColor: "#141432",
+    borderWidth: 2,
+    borderColor: "#00ff88",
+    borderRadius: 12,
+    padding: 28,
+    alignItems: "center",
+    gap: 12,
+  },
+  completionTitle: { color: "#00ff88", fontSize: 24, fontWeight: "bold", textAlign: "center" },
+  completionText: { color: "#00ffff", fontSize: 15, textAlign: "center" },
 });

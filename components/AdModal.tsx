@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { AppState } from "react-native";
+import { Platform } from "react-native";
 import { useInterstitialAd } from "@/hooks/useInterstitialAd";
 
 type Props = {
@@ -32,39 +32,41 @@ export function AdModal({ visible, onDismiss }: Props) {
 
     hasPresentedRef.current = true;
     hasCompletedRef.current = false;
-    // Native SDK callbacks are the normal completion path. A long watchdog and
-    // an interruption recovery path prevent SDK failures from blocking play
-    // without navigating under a normally displayed interstitial.
-    let watchdog: ReturnType<typeof setTimeout> | undefined;
-    let interruptionFallback: ReturnType<typeof setTimeout> | undefined;
-    let wasInterrupted = false;
+    // Give the native SDK a short window to finish loading. Previously a
+    // not-yet-loaded ad was skipped immediately, which made both game-boundary
+    // placements disappear on faster devices and fresh app launches.
+    let retryTimer: ReturnType<typeof setTimeout> | undefined;
     const completeOnce = () => {
       if (hasCompletedRef.current) return;
       hasCompletedRef.current = true;
-      if (watchdog) clearTimeout(watchdog);
-      if (interruptionFallback) clearTimeout(interruptionFallback);
+      if (retryTimer) clearTimeout(retryTimer);
       dismissRef.current();
     };
-    const wasPresented = showInterstitialRef.current(completeOnce);
-    const appStateSubscription = wasPresented
-      ? AppState.addEventListener("change", (state) => {
-          if (state !== "active") {
-            wasInterrupted = true;
-            return;
-          }
-          if (wasInterrupted && !hasCompletedRef.current) {
-            if (interruptionFallback) clearTimeout(interruptionFallback);
-            interruptionFallback = setTimeout(completeOnce, 2000);
-          }
-        })
-      : null;
-    if (wasPresented) {
-      watchdog = setTimeout(completeOnce, 120000);
+
+    if (Platform.OS === "web") {
+      completeOnce();
+      return;
     }
+
+    const loadDeadline = Date.now() + 6000;
+    const tryPresent = () => {
+      if (hasCompletedRef.current) return;
+      const wasPresented = showInterstitialRef.current(completeOnce);
+      if (!wasPresented) {
+        if (hasCompletedRef.current) return;
+        if (Date.now() < loadDeadline) {
+          retryTimer = setTimeout(tryPresent, 250);
+        } else {
+          completeOnce();
+        }
+        return;
+      }
+
+    };
+
+    tryPresent();
     return () => {
-      if (watchdog) clearTimeout(watchdog);
-      if (interruptionFallback) clearTimeout(interruptionFallback);
-      appStateSubscription?.remove();
+      if (retryTimer) clearTimeout(retryTimer);
       hasCompletedRef.current = true;
     };
   }, [visible]);

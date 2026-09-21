@@ -12,10 +12,7 @@ export function initializeAds(): Promise<boolean> {
 }
 
 export function useInterstitialAd() {
-  const showInterstitial = useCallback((onFinished: Completion) => {
-    onFinished();
-    return false;
-  }, []);
+  const showInterstitial = useCallback((_onFinished: Completion) => false, []);
 
   return { isLoaded: false, showInterstitial };
 }
