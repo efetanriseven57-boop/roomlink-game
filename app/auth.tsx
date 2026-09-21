@@ -15,6 +15,7 @@ const LANGS: { code: LangCode; flag: string }[] = [
 ];
 
 const PASSWORD_MIN_LENGTH = 15;
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 type AuthMode = "signIn" | "signUp";
 type ResetStep = "email" | "code" | "password";
@@ -101,6 +102,16 @@ export default function AuthScreen() {
     : signUpErrors.fields.emailAddress ?? signUpErrors.fields.password;
   const fieldError = fieldIssue ? translateClerkError(fieldIssue, lang) : "";
 
+  const validateEmail = (): boolean => {
+    if (!EMAIL_PATTERN.test(email.trim())) {
+      setError(lang === "tr"
+        ? "Geçerli bir e-posta adresi girin. Örnek: adiniz@example.com"
+        : "Enter a valid email address. Example: name@example.com");
+      return false;
+    }
+    return true;
+  };
+
   const validateNewPassword = (): boolean => {
     if (password.length < PASSWORD_MIN_LENGTH) {
       setError(lang === "tr"
@@ -127,6 +138,7 @@ export default function AuthScreen() {
   const submit = async () => {
     setError("");
     setNotice("");
+    if (!validateEmail()) return;
     try {
       if (mode === "signIn") {
         const result = await signIn.password({ emailAddress: email.trim(), password });
@@ -177,6 +189,7 @@ export default function AuthScreen() {
   const sendResetCode = async () => {
     setError("");
     setNotice("");
+    if (!validateEmail()) return;
     try {
       const created = await signIn.create({ identifier: email.trim() });
       if (created.error) {
