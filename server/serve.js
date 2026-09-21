@@ -13,24 +13,9 @@ const projectRoot = path.resolve(__dirname, "..");
 const STATIC_DIR = path.join(projectRoot, "web", "store-assets");
 const PUBLIC_SITE_DIR = path.join(projectRoot, "web", "public-site");
 const SITE_URL = "https://ad-mob-play-store--efetanriseven.replit.app";
-
-function getDeploymentDomain() {
-  const rawDomain =
-    process.env.REPLIT_INTERNAL_APP_DOMAIN ||
-    process.env.REPLIT_DEV_DOMAIN ||
-    process.env.EXPO_PUBLIC_DOMAIN ||
-    "";
-  if (!rawDomain) return "";
-  const withProtocol = /^https?:\/\//i.test(rawDomain)
-    ? rawDomain
-    : `https://${rawDomain}`;
-  return new URL(withProtocol).host;
-}
-
-const deploymentDomain = getDeploymentDomain();
 const clerkProxyUrl =
-  deploymentDomain && process.env.CLERK_PROXY_URL
-    ? `https://${deploymentDomain}${process.env.CLERK_PROXY_URL}`
+  process.env.CLERK_PROXY_URL
+    ? `${SITE_URL}${process.env.CLERK_PROXY_URL}`
     : "";
 const metroEnv = {
   ...process.env,
