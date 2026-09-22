@@ -2,7 +2,7 @@
   "expo": {
     "name": "Room-Link Puzzle: Galaxy",
     "slug": "roomlink-game",
-    "version": "1.0.7",
+    "version": "1.0.8",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "roomlink-game",
@@ -23,7 +23,7 @@
         "backgroundColor": "#0a0015"
       },
       "package": "com.roomlink.puzzle",
-      "versionCode": 8
+      "versionCode": 9
     },
     "web": {
       "favicon": "./assets/images/icon.png"

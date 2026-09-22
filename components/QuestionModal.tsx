@@ -12,27 +12,24 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useGame } from "@/context/GameContext";
 import { useLang } from "@/context/LanguageContext";
 import { NeonButton } from "@/components/NeonButton";
-import { useRewardedAd } from "@/hooks/useRewardedAd";
+import { useAds } from "@/components/AdsProvider";
 
 export function QuestionModal() {
-  const { questionModal, selectAnswer, submitAnswer, skipPenalty, pausePenalty, resumePenalty } = useGame();
+  const { questionModal, selectAnswer, submitAnswer, skipPenalty } = useGame();
   const { ts } = useLang();
   const insets = useSafeAreaInsets();
-  const { isLoaded: isRewardedAdLoaded, showRewarded } = useRewardedAd();
+  const { isRewardedLoaded, showRewarded } = useAds();
 
-  const { visible, question, shuffledOptions, timeLeft, penaltyActive, penaltyLeft, selectedAnswer, answerResult } = questionModal;
+  const { attemptId, visible, question, shuffledOptions, timeLeft, penaltyActive, penaltyLeft, selectedAnswer, answerResult } = questionModal;
 
   const timerColor = timeLeft <= 5 ? "#ff0000" : timeLeft <= 10 ? "#ffff00" : "#00ffff";
 
   const handleRewardedAd = () => {
-    pausePenalty();
     const wasPresented = showRewarded(
-      skipPenalty,
-      (rewardEarned) => {
-        if (!rewardEarned) resumePenalty();
-      },
+      () => skipPenalty(attemptId),
+      () => {},
     );
-    if (!wasPresented) resumePenalty();
+    if (!wasPresented) return;
   };
 
   const getOptionStyle = (optionId: string) => {
@@ -69,10 +66,10 @@ export function QuestionModal() {
               ) : (
                 <>
                   <NeonButton
-                    label={isRewardedAdLoaded ? ts("skipPenaltyWithAd") : ts("rewardedAdLoading")}
+                    label={isRewardedLoaded ? ts("skipPenaltyWithAd") : ts("rewardedAdLoading")}
                     onPress={handleRewardedAd}
                     color="orange"
-                    disabled={!isRewardedAdLoaded}
+                    disabled={!isRewardedLoaded}
                     style={styles.rewardButton}
                   />
                   <Text style={styles.rewardNote}>

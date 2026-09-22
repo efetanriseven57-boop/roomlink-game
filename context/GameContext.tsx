@@ -60,6 +60,7 @@ type GameContextType = {
   friends: string[];
   session: GameSessionState | null;
   questionModal: {
+    attemptId: number;
     visible: boolean;
     question: LocalizedQuestion | null;
     shuffledOptions: LocalizedQuestion["options"];
@@ -83,7 +84,7 @@ type GameContextType = {
   openQuestion: (roomId: string, itemIndex: number) => void;
   selectAnswer: (answer: string) => void;
   submitAnswer: () => void;
-  skipPenalty: () => void;
+  skipPenalty: (attemptId: number) => void;
   pausePenalty: () => void;
   resumePenalty: () => void;
   closeQuestion: () => void;
@@ -114,6 +115,7 @@ const defaultSession = (): GameSessionState => ({
 });
 
 const defaultQModal = () => ({
+  attemptId: 0,
   visible: false,
   question: null as LocalizedQuestion | null,
   shuffledOptions: [] as LocalizedQuestion["options"],
@@ -344,6 +346,9 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     if (resultRecordedRef.current) return;
     resultRecordedRef.current = true;
     clearTimers();
+    questionAttemptRef.current += 1;
+    questionResolvedRef.current = true;
+    setQModal(defaultQModal());
     let finalScore = sess.score;
     if (won) finalScore += sess.timeLeft * 10;
 
@@ -449,6 +454,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     const attemptId = ++questionAttemptRef.current;
     questionResolvedRef.current = false;
     setQModal({
+      attemptId,
       visible: true,
       question,
       shuffledOptions: shuffled,
@@ -482,25 +488,31 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
             sessionRef.current = updated;
             return updated;
           });
-          let penaltyLeft = 20;
+          const penaltyDeadline = Date.now() + 20_000;
           penaltyTimerRef.current = setInterval(() => {
-            if (appStateRef.current !== "active" || penaltyPausedRef.current || attemptId !== questionAttemptRef.current) return;
+            if (attemptId !== questionAttemptRef.current) {
+              if (penaltyTimerRef.current) clearInterval(penaltyTimerRef.current);
+              penaltyTimerRef.current = null;
+              return;
+            }
+            if (penaltyPausedRef.current) return;
             if (!sessionRef.current?.gameActive || gameEndedRef.current) {
               if (penaltyTimerRef.current) clearInterval(penaltyTimerRef.current);
               penaltyTimerRef.current = null;
               return;
             }
-            penaltyLeft--;
+            const penaltyLeft = Math.max(0, Math.ceil((penaltyDeadline - Date.now()) / 1000));
             setQModal((modal) => {
               if (penaltyLeft <= 0) {
                 clearInterval(penaltyTimerRef.current!);
                 penaltyTimerRef.current = null;
+                questionAttemptRef.current += 1;
                 setTimeout(() => openQuestion(prev.roomId, prev.itemIndex), 200);
                 return { ...modal, penaltyActive: false, penaltyLeft: 0, visible: false };
               }
               return { ...modal, penaltyLeft };
             });
-          }, 1000);
+          }, 250);
           return { ...prev, timeLeft: 0, answerResult: "incorrect", penaltyActive: true, penaltyLeft: 20 };
         }
         return { ...prev, timeLeft: qTimeLeft };
@@ -563,32 +575,40 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
           sessionRef.current = updated;
           return updated;
         });
-        let penaltyLeft = 20;
+        const penaltyDeadline = Date.now() + 20_000;
+        const penaltyAttemptId = questionAttemptRef.current;
         penaltyTimerRef.current = setInterval(() => {
-          if (appStateRef.current !== "active" || penaltyPausedRef.current) return;
+          if (penaltyAttemptId !== questionAttemptRef.current) {
+            if (penaltyTimerRef.current) clearInterval(penaltyTimerRef.current);
+            penaltyTimerRef.current = null;
+            return;
+          }
+          if (penaltyPausedRef.current) return;
           if (!sessionRef.current?.gameActive || gameEndedRef.current) {
             if (penaltyTimerRef.current) clearInterval(penaltyTimerRef.current);
             penaltyTimerRef.current = null;
             return;
           }
-          penaltyLeft--;
+          const penaltyLeft = Math.max(0, Math.ceil((penaltyDeadline - Date.now()) / 1000));
           setQModal((p) => {
             if (penaltyLeft <= 0) {
               clearInterval(penaltyTimerRef.current!);
               penaltyTimerRef.current = null;
+              questionAttemptRef.current += 1;
               setTimeout(() => openQuestion(prev.roomId, prev.itemIndex), 200);
               return { ...p, penaltyActive: false, penaltyLeft: 0, visible: false };
             }
             return { ...p, penaltyLeft };
           });
-        }, 1000);
+        }, 250);
         return { ...prev, answerResult: "incorrect", penaltyActive: true, penaltyLeft: 20 };
       }
     });
   }, [endGameInternal, openQuestion]);
 
-  const skipPenalty = useCallback(() => {
-    if (!qModal.visible || !qModal.penaltyActive) return;
+  const skipPenalty = useCallback((attemptId: number) => {
+    if (attemptId !== questionAttemptRef.current || !qModal.visible || !qModal.penaltyActive) return;
+    questionAttemptRef.current += 1;
     penaltyPausedRef.current = false;
     if (penaltyTimerRef.current) {
       clearInterval(penaltyTimerRef.current);

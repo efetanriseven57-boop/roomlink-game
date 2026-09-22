@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Platform } from "react-native";
 import { getAdIds } from "@/constants/admob";
+import { initializeAds } from "@/hooks/useInterstitialAd";
 
 type Reward = () => void;
 type Completion = (rewardEarned: boolean) => void;
 type Rewarded = {
   addAdEventListener: (event: string, listener: (...args: unknown[]) => void) => () => void;
   load: () => void;
-  show: () => void;
+  show: () => Promise<void>;
 };
 type AdsModule = {
   AdEventType: { CLOSED: string; ERROR: string };
@@ -35,6 +36,7 @@ function getAdsModule(): AdsModule | null {
 }
 
 export function useRewardedAd() {
+  const [isInitialized, setIsInitialized] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const adRef = useRef<Rewarded | null>(null);
   const rewardRef = useRef<Reward | null>(null);
@@ -42,6 +44,17 @@ export function useRewardedAd() {
   const rewardEarnedRef = useRef(false);
 
   useEffect(() => {
+    let active = true;
+    void initializeAds().then((initialized) => {
+      if (active) setIsInitialized(initialized);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isInitialized) return;
     const ads = getAdsModule();
     if (!ads) return;
 
@@ -97,7 +110,7 @@ export function useRewardedAd() {
       rewardEarnedRef.current = false;
       adRef.current = null;
     };
-  }, []);
+  }, [isInitialized]);
 
   const showRewarded = useCallback((onRewarded: Reward, onFinished?: Completion) => {
     const ad = adRef.current;
@@ -107,7 +120,16 @@ export function useRewardedAd() {
     rewardEarnedRef.current = false;
     setIsLoaded(false);
     try {
-      ad.show();
+      void Promise.resolve(ad.show()).catch(() => {
+        if (!rewardRef.current && !completionRef.current) return;
+        rewardRef.current = null;
+        const complete = completionRef.current;
+        completionRef.current = null;
+        rewardEarnedRef.current = false;
+        setIsLoaded(false);
+        complete?.(false);
+        ad.load();
+      });
       return true;
     } catch {
       rewardRef.current = null;

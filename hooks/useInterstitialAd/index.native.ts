@@ -6,7 +6,7 @@ type Completion = () => void;
 type Interstitial = {
   addAdEventListener: (event: string, listener: (...args: unknown[]) => void) => () => void;
   load: () => void;
-  show: () => void;
+  show: () => Promise<void>;
 };
 type AdsModule = {
   default: () => { initialize: () => Promise<unknown> };
@@ -20,6 +20,7 @@ type AdsModule = {
 };
 
 let adsModule: AdsModule | null | undefined;
+let adsInitialization: Promise<boolean> | null = null;
 
 /**
  * Expo Go does not contain the native Google Mobile Ads modules. Loading the
@@ -41,23 +42,48 @@ function getAdsModule(): AdsModule | null {
 }
 
 export async function initializeAds(): Promise<boolean> {
+  if (adsInitialization) return adsInitialization;
   const ads = getAdsModule();
   if (!ads) return false;
 
-  try {
-    await ads.default().initialize();
-    return true;
-  } catch {
+  adsInitialization = (async () => {
+    const retryDelays = [0, 500, 1_500, 3_000, 5_000];
+    for (const delay of retryDelays) {
+      if (delay > 0) {
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+      try {
+        await ads.default().initialize();
+        return true;
+      } catch {
+        // Retry transient startup failures without requiring an app remount.
+      }
+    }
+    adsInitialization = null;
     return false;
-  }
+  })();
+  return adsInitialization;
 }
 
 export function useInterstitialAd() {
+  const [isInitialized, setIsInitialized] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [generation, setGeneration] = useState(0);
   const adRef = useRef<Interstitial | null>(null);
   const completionRef = useRef<Completion | null>(null);
 
   useEffect(() => {
+    let active = true;
+    void initializeAds().then((initialized) => {
+      if (active) setIsInitialized(initialized);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isInitialized) return;
     const ads = getAdsModule();
     if (!ads) return;
 
@@ -100,6 +126,12 @@ export function useInterstitialAd() {
       adRef.current = null;
       completionRef.current = null;
     };
+  }, [generation, isInitialized]);
+
+  const resetInterstitial = useCallback(() => {
+    completionRef.current = null;
+    setIsLoaded(false);
+    setGeneration((current) => current + 1);
   }, []);
 
   const showInterstitial = useCallback((onFinished: Completion) => {
@@ -112,7 +144,14 @@ export function useInterstitialAd() {
     setIsLoaded(false);
 
     try {
-      ad.show();
+      void Promise.resolve(ad.show()).catch(() => {
+        const completion = completionRef.current;
+        if (!completion) return;
+        completionRef.current = null;
+        setIsLoaded(false);
+        completion?.();
+        ad.load();
+      });
       return true;
     } catch {
       completionRef.current = null;
@@ -122,5 +161,5 @@ export function useInterstitialAd() {
     }
   }, [isLoaded]);
 
-  return { isLoaded, showInterstitial };
+  return { isLoaded, showInterstitial, resetInterstitial };
 }

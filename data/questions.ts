@@ -440,6 +440,210 @@ const localizedOptionTriples: Record<Exclude<QuestionLocale, "en">, LocalizedOpt
   },
 };
 
+/*
+ * The source bank intentionally contains concise English labels because it is
+ * also used by the English locale.  Do not use those labels as a fallback for
+ * Turkish: a translated question must remain translated even when it is past
+ * the four sample facts above.  These maps cover the complete source bank;
+ * formulae, units, dates, symbols, and proper names are deliberately kept
+ * unchanged where they are language-neutral.
+ */
+const turkishQuestionTranslations: Record<string, string> = {
+  "Alphabet has ? letters": "Alfabede kaç harf vardır?",
+  "'Happy' = ?": "'Happy' ne demektir?",
+  "'Big' means ?": "'Big' ne demektir?",
+  "'Fast' opposite?": "'Fast' kelimesinin zıttı nedir?",
+  "'Old' opposite?": "'Old' kelimesinin zıttı nedir?",
+  "'Beautiful' = ?": "'Beautiful' ne demektir?",
+  "'Start' opposite?": "'Start' kelimesinin zıttı nedir?",
+  "'Friend' = ?": "'Friend' ne demektir?",
+  "'Hot' opposite?": "'Hot' kelimesinin zıttı nedir?",
+  "'Strong' = ?": "'Strong' ne demektir?",
+  "'Dark' opposite?": "'Dark' kelimesinin zıttı nedir?",
+  "'Quiet' = ?": "'Quiet' ne demektir?",
+  "'Short' opposite?": "'Short' kelimesinin zıttı nedir?",
+  "'Clean' = ?": "'Clean' ne demektir?",
+  "'Rich' opposite?": "'Rich' kelimesinin zıttı nedir?",
+  "'Happy' opposite?": "'Happy' kelimesinin zıttı nedir?",
+  "'Red' is a ?": "'Red' hangi tür kelimedir?",
+  "'Cat' is ?": "'Cat' nedir?",
+  "Present Continuous uses?": "Şimdiki zamanda hangi yardımcı fiiller kullanılır?",
+  "Past Tense marker?": "Geçmiş zaman eki hangisidir?",
+  "Plural 'child' = ?": "'child' kelimesinin çoğulu nedir?",
+  "'Will' expresses?": "'Will' neyi ifade eder?",
+  "'Must' means?": "'Must' ne demektir?",
+  "Plural 'man' = ?": "'man' kelimesinin çoğulu nedir?",
+  "Comparative uses?": "Karşılaştırma derecesinde hangi ek kullanılır?",
+  "Superlative uses?": "Üstünlük derecesinde hangi ek kullanılır?",
+  "Gerund function?": "Gerundün görevi nedir?",
+  "Infinitive marker?": "Mastar belirteci hangisidir?",
+  "Pragmatics studies?": "Edimbilim neyi inceler?",
+  "Syntax studies?": "Sözdizimi neyi inceler?",
+  "Phonetics is about?": "Fonetik neyle ilgilidir?",
+  "Morphology studies?": "Biçimbilim neyi inceler?",
+  "Passive: 'The book was read by her'. Agent is?": "Edilgen cümlede 'The book was read by her' öznesi hangisidir?",
+  "Subjunctive in 'I wish I were...' is?": "'I wish I were...' cümlesindeki kip hangisidir?",
+  "Antonym of 'benevolent'?": "'benevolent' kelimesinin zıttı nedir?",
+  "Onomatopoeia is?": "Yansıma sözcük nedir?",
+  "Turkey capital: ?": "Türkiye'nin başkenti neresidir?",
+  "Turkey on ? continents": "Türkiye kaç kıtada yer alır?",
+  "Highest mountain: ?": "En yüksek dağ hangisidir?",
+  "Longest river: ?": "En uzun nehir hangisidir?",
+  "Largest lake: ?": "En büyük göl hangisidir?",
+  "Taurus Mts location: ?": "Toros Dağları hangi yöndedir?",
+  "Black Sea faces: ?": "Karadeniz hangi yöndedir?",
+  "Istanbul separates: ?": "İstanbul neyi birbirinden ayırır?",
+  "Pamukkale location: ?": "Pamukkale hangi şehirdedir?",
+  "Cappadocia: ?": "Kapadokya hangi ildedir?",
+  "Troy location: ?": "Truva hangi ildedir?",
+  "Ephesus: ?": "Efes hangi ildedir?",
+  "TR provinces: ?": "Türkiye'de kaç il vardır?",
+  "Fırat starts: ?": "Fırat Nehri nereden doğar?",
+  "Northernmost city: ?": "En kuzeydeki şehir hangisidir?",
+  "Southernmost city: ?": "En güneydeki şehir hangisidir?",
+  "Sakarya flows to: ?": "Sakarya Nehri nereye dökülür?",
+  "TR population ~?": "Türkiye'nin nüfusu yaklaşık kaçtır?",
+  "Nemrut Dağı: ?": "Nemrut Dağı hangi ildedir?",
+  "Sumela Monastery: ?": "Sümela Manastırı hangi ildedir?",
+  "Lake Van depth: ?": "Van Gölü'nün derinliği yaklaşık kaç metredir?",
+  "TR total area (k km²): ?": "Türkiye'nin yüzölçümü yaklaşık kaç bin km²'dir?",
+  "TR latitude: ?": "Türkiye hangi enlemler arasındadır?",
+  "Peak elevation: ?": "Zirvenin yüksekliği kaç metredir?",
+  "Tuz Gölü size: ?": "Tuz Gölü'nün yüzölçümü yaklaşık kaç km²'dir?",
+  "Rainiest region: ?": "En yağışlı bölge hangisidir?",
+  "Driest region: ?": "En kurak bölge hangisidir?",
+  "Mediterranean climate: ?": "Akdeniz ikliminin yazları nasıldır?",
+  "Speed of light (km/s): ?": "Işık hızı (km/s) kaçtır?",
+  "Water boils at °C: ?": "Su kaç °C'de kaynar?",
+  "Force unit: ?": "Kuvvetin birimi nedir?",
+  "Energy unit: ?": "Enerjinin birimi nedir?",
+  "Water freezes °C: ?": "Su kaç °C'de donar?",
+  "g ≈ ? m/s²": "g yaklaşık kaç m/s²'dir?",
+  "Sound speed ≈ ?": "Sesin hızı yaklaşık kaçtır?",
+  "Current unit: ?": "Elektrik akımının birimi nedir?",
+  "Pressure unit: ?": "Basınç birimi nedir?",
+  "Frequency unit: ?": "Frekans birimi nedir?",
+  "Power unit: ?": "Güç birimi nedir?",
+  "Newton's laws: ?": "Newton'un hareket yasaları kaç tanedir?",
+  "States of matter: ?": "Maddenin kaç hâli vardır?",
+  "Momentum = ?": "Momentumun formülü nedir?",
+  "Density = ?": "Yoğunluğun formülü nedir?",
+  "Kinetic energy = ?": "Kinetik enerjinin formülü nedir?",
+  "Work = F × ?": "İş = F × ?",
+  "Weight = ?": "Ağırlığın formülü nedir?",
+  "Ohm's Law: ?": "Ohm Yasası nedir?",
+  "Speed = ?": "Hızın formülü nedir?",
+  "Acceleration unit: ?": "İvmenin birimi nedir?",
+  "Wave eq: v = ?": "Dalga denkleminde v nedir?",
+  "Energy conservation: ?": "Enerjinin korunumu nasıldır?",
+  "Hooke's Law: F = ?": "Hooke Yasası: F = ?",
+  "Centripetal acc = ?": "Merkezcil ivmenin formülü nedir?",
+  "Angular momentum L = ?": "Açısal momentumun formülü nedir?",
+  "Torque τ = ?": "Torkun formülü nedir?",
+  "SHM period T = ?": "Basit harmonik hareketin periyodu nedir?",
+  "Planck constant (J·s): ?": "Planck sabiti (J·s) kaçtır?",
+  "Heisenberg uncertainty: ?": "Heisenberg belirsizlik ilkesi nedir?",
+  "Special relativity mass: ?": "Özel görelilikte kütle nedir?",
+  "de Broglie wavelength: ?": "de Broglie dalga boyu nedir?",
+  "Maxwell eq count: ?": "Maxwell denklemleri kaç tanedir?",
+  "Lorentz factor γ = ?": "Lorentz çarpanı γ nedir?",
+  "Schwarzschild radius: ?": "Schwarzschild yarıçapı nedir?",
+  "Fine structure constant ≈ ?": "İnce yapı sabiti yaklaşık kaçtır?",
+  "Water: ?": "Su nedir?",
+  "Lightest element: ?": "En hafif element hangisidir?",
+  "Salt: ?": "Tuzun formülü nedir?",
+  "Iron: ?": "Demirin simgesi nedir?",
+  "Gold: ?": "Altının simgesi nedir?",
+  "Silver: ?": "Gümüşün simgesi nedir?",
+  "Copper: ?": "Bakırın simgesi nedir?",
+  "Carbon: ?": "Karbonun simgesi nedir?",
+  "Nitrogen: ?": "Azotun simgesi nedir?",
+  "Sodium: ?": "Sodyumun simgesi nedir?",
+  "Potassium: ?": "Potasyumun simgesi nedir?",
+  "Calcium: ?": "Kalsiyumun simgesi nedir?",
+  "Oxygen: ?": "Oksijenin simgesi nedir?",
+  "CO₂ name: ?": "CO₂'nin adı nedir?",
+  "Ottoman founded: ?": "Osmanlı Devleti hangi yıl kuruldu?",
+  "Gallipoli: ?": "Çanakkale Savaşı hangi yıl gerçekleşti?",
+  "Sakarya Battle: ?": "Sakarya Savaşı hangi yıl gerçekleşti?",
+  "Napoleon power: ?": "Napolyon hangi yıl iktidara geldi?",
+  "Waterloo: ?": "Waterloo Savaşı hangi yıl gerçekleşti?",
+  "American Revolution: ?": "Amerikan Devrimi hangi yıl başladı?",
+  "Alexander died age: ?": "İskender kaç yaşında öldü?",
+  "Julius Caesar: ?": "Jül Sezar hangi yıl öldürüldü?",
+  "Tanzimat: ?": "Tanzimat Fermanı hangi yıl ilan edildi?",
+  "Alphabet Reform: ?": "Harf Devrimi hangi yıl yapıldı?",
+  "Caliphate abolished: ?": "Halifelik hangi yıl kaldırıldı?",
+  "Women's suffrage (TR): ?": "Türkiye'de kadınlara seçme hakkı hangi yıl verildi?",
+  "Sykes-Picot: ?": "Sykes-Picot Anlaşması hangi yıl imzalandı?",
+  "İzmir liberated: ?": "İzmir hangi yıl kurtarıldı?",
+  "Piri Reis map: ?": "Piri Reis haritası hangi yıl çizildi?",
+  "Battle of Lepanto: ?": "İnebahtı Deniz Savaşı hangi yıl gerçekleşti?",
+  "Fatih's age at conquest: ?": "Fatih Sultan Mehmet İstanbul'u fethettiğinde kaç yaşındaydı?",
+  "Suleiman took power: ?": "Kanuni Sultan Süleyman hangi yıl tahta çıktı?",
+  "Periodic table elements: ?": "Periyodik tabloda kaç element vardır?",
+  "Periodic table groups: ?": "Periyodik tabloda kaç grup vardır?",
+  "Alkali metals group: ?": "Alkali metaller hangi gruptadır?",
+  "Noble gases group: ?": "Soy gazlar hangi gruptadır?",
+  "pH of pure water: ?": "Saf suyun pH değeri kaçtır?",
+  "Acid pH: ?": "Asitlerin pH değeri nasıldır?",
+  "Base pH: ?": "Bazların pH değeri nasıldır?",
+  "Molarity unit: ?": "Molarite birimi nedir?",
+  "Avogadro's number: ?": "Avogadro sayısı kaçtır?",
+  "Electron charge: ?": "Elektronun yükü nedir?",
+  "Molar mass of H₂O: ?": "H₂O'nun molar kütlesi kaçtır?",
+  "Le Chatelier's principle: ?": "Le Chatelier ilkesi nedir?",
+  "Hund's rule: ?": "Hund kuralı nedir?",
+  "Aufbau principle: ?": "Aufbau ilkesi nedir?",
+  "Gibbs free energy: G = ?": "Gibbs serbest enerjisi: G = ?",
+  "Entropy symbol: ?": "Entropinin simgesi nedir?",
+  "Enthalpy symbol: ?": "Entalpinin simgesi nedir?",
+  "Henderson-Hasselbalch: pH = ?": "Henderson-Hasselbalch denklemi: pH = ?",
+  "Rate constant units (1st order): ?": "Birinci dereceden tepkimede hız sabitinin birimi nedir?",
+};
+
+const turkishOptionTranslations: Record<string, string> = {
+  "753 BC": "MÖ 753", "500 BC": "MÖ 500", "800 BC": "MÖ 800",
+  "44 BC": "MÖ 44", "50 BC": "MÖ 50", "40 BC": "MÖ 40",
+  Ampere: "Amper",
+  Goodbye: "Hoşça kal", Greeting: "Selamlaşma", Bye: "Güle güle", Fruit: "Meyve",
+  Color: "Renk", Number: "Sayı", Sad: "Üzgün", Joyful: "Neşeli", Angry: "Kızgın",
+  Small: "Küçük", Large: "Büyük", Tiny: "Minik", Quick: "Çabuk", Slow: "Yavaş",
+  Speed: "Hız", New: "Yeni", Young: "Genç", Ugly: "Çirkin", Pretty: "Güzel",
+  Plain: "Sade", Begin: "Başlangıç", End: "Son", Middle: "Orta", Enemy: "Düşman",
+  Companion: "Arkadaş", Stranger: "Yabancı", Warm: "Ilık", Cold: "Soğuk", Cool: "Serin",
+  Weak: "Zayıf", Powerful: "Güçlü", Soft: "Yumuşak", Bright: "Parlak", Light: "Aydınlık",
+  Clear: "Açık", Silent: "Sessiz", Loud: "Gürültülü", Tall: "Uzun", Big: "Büyük",
+  Dirty: "Kirli", Neat: "Düzenli", Pure: "Saf", Poor: "Fakir", Wealthy: "Zengin",
+  Money: "Para", Fun: "Eğlence", Noun: "İsim", Verb: "Fiil", Animal: "Hayvan",
+  Do: "Do", Have: "Have", Possibility: "Olasılık",
+  Ability: "Yetenek", mans: "mans", men: "men", "mans'": "mans'", "-er": "-er",
+  "-est": "-est", "-ing": "-ing", "-ly": "-ly", "to": "to", Words: "Kelimeler",
+  Sentences: "Cümleler", Sound: "Ses", Meaning: "Anlam", Grammar: "Dil bilgisi",
+  "Speech sounds": "Konuşma sesleri", "Words structure": "Kelime yapısı",
+  Metaphor: "Benzetme", "Sound word": "Yansıma sözcük", Rhyme: "Kafiye",
+  Present: "Şimdiki zaman", Past: "Geçmiş zaman", Future: "Gelecek zaman",
+  Mood: "Kip", kind: "iyi", malevolent: "kötü", generous: "cömert",
+  Obligation: "Zorunluluk", Islands: "Adalar", "Asia-Europe": "Asya-Avrupa",
+  "Sea-Land": "Deniz-kara", West: "Batı", South: "Güney", North: "Kuzey", East: "Doğu",
+  "Black Sea": "Karadeniz", Marmara: "Marmara Denizi", Aegean: "Ege Denizi",
+  Central: "İç Anadolu", Southeast: "Güneydoğu", Mediterranean: "Akdeniz",
+  "Dry summer": "Kurak yaz", "Cold summer": "Soğuk yaz", "Wet summer": "Yağışlı yaz",
+  "Time": "Zaman", Distance: "Uzaklık", "Stays constant": "Sabit kalır",
+  Changes: "Değişir", None: "Değişmez", "Max spins parallel": "En çok paralel spin",
+  "Max spins opposite": "En çok zıt spin", "Fill lowest first": "Önce en düşük düzey dolar",
+  "Fill highest first": "Önce en yüksek düzey dolar", "Fill randomly": "Rastgele dolar",
+  "Reaction stops": "Tepkime durur", "Rate doubles": "Hız iki katına çıkar",
+  "Equilibrium shifts": "Denge yer değiştirir",
+  "Carbon Monoxide": "Karbon monoksit", "Carbon Dioxide": "Karbon dioksit",
+  "Carbonic Acid": "Karbonik asit", Helium: "Helyum", Hydrogen: "Hidrojen",
+  Lithium: "Lityum", "Acid pH": "Asidik", Base: "Bazik", "Electron charge": "Elektron yükü",
+};
+
+function translateTurkishText(text: string): string {
+  return turkishQuestionTranslations[text] ?? turkishOptionTranslations[text] ?? text;
+}
+
 function buildLocaleBank(locale: QuestionLocale): LocalizedQuestionBank {
   const bank = {} as LocalizedQuestionBank;
   ([0, 1, 2, 3, 4, 5] as BranchId[]).forEach((branch) => {
@@ -449,8 +653,10 @@ function buildLocaleBank(locale: QuestionLocale): LocalizedQuestionBank {
         .map(({ q, o, c }) => [q, [o[0], o[1], o[2]], o.indexOf(c) as 0 | 1 | 2] as Fact);
       const localizedFacts = locale !== "en"
         ? sourceFacts.map(([sourceQuestion, sourceLabels, correctIndex], index) => {
-          const labels = localizedOptionTriples[locale][branch]?.[difficulty]?.[index] ?? sourceLabels;
-          const question = localizedPrompts[locale][branch][difficulty][index] ?? sourceQuestion;
+          const labels = localizedOptionTriples[locale][branch]?.[difficulty]?.[index]
+            ?? (locale === "tr" ? sourceLabels.map(translateTurkishText) as unknown as OptionTriple : sourceLabels);
+          const question = localizedPrompts[locale][branch][difficulty][index]
+            ?? (locale === "tr" ? translateTurkishText(sourceQuestion) : sourceQuestion);
           return [question, labels, correctIndex] as Fact;
         })
         : sourceFacts;
@@ -484,6 +690,10 @@ export const localizedRoomNames: Record<QuestionLocale, Record<string, string>> 
 
 export function validateLocalizedQuestionBanks(): string[] {
   const errors: string[] = [];
+  /* These are English source-bank words, not formula symbols.  Branch 1 is
+   * the English-learning branch, so its quoted vocabulary and grammar terms
+   * are intentionally allowed in every locale. */
+  const knownEnglishWords = /\b(?:what|which|when|where|how|many|means|opposite|is|are|the|of|at|on|has|letters|uses|marker|expresses|function|studies|about|agent|antonym|sound|word|words|sentences|sentence|speech|metaphor|rhyme|capital|continents|highest|lowest|largest|longest|location|north|south|east|west|black|sea|population|region|rainiest|driest|summer|water|lightest|salt|iron|gold|silver|copper|carbon|nitrogen|sodium|potassium|calcium|oxygen|name|elements|groups|noble|acid|base|number|electron|charge|mass|energy|power|current|pressure|frequency|speed|force|unit|laws|states|matter|momentum|density|kinetic|work|time|distance|weight|constant|principle|rule|fill|highest|randomly|reaction|rate|equilibrium|first|order|ampere|bc)\b/i;
   (Object.keys(localizedQuestionBanks) as QuestionLocale[]).forEach((locale) => {
     const questionIds = new Set<string>();
     const optionIds = new Set<string>();
@@ -520,8 +730,15 @@ export function validateLocalizedQuestionBanks(): string[] {
             const english = localizedQuestionBanks.en[branch][difficulty][index];
             const sameQuestion = question.question === english.question;
             const sameOptions = question.options.every((option, optionIndex) => option.label === english.options[optionIndex]?.label);
-            const hasAuthoredPrompt = index < localizedPrompts[locale][branch][difficulty].length;
-            if (hasAuthoredPrompt && sameQuestion && sameOptions) {
+            if (locale === "tr" && branch !== 1) {
+              if (sameQuestion && sameOptions && knownEnglishWords.test(question.question)) {
+                errors.push(`${locale}/${question.id} falls back identically to English content`);
+              }
+              const text = [question.question, ...question.options.map((option) => option.label)].join(" ");
+              if (knownEnglishWords.test(text)) {
+                errors.push(`${locale}/${question.id} contains an untranslated English word`);
+              }
+            } else if (index < localizedPrompts[locale][branch][difficulty].length && sameQuestion && sameOptions) {
               errors.push(`${locale}/${question.id} duplicates English content despite having an authored translation`);
             }
             const requiresLocalizedOptions = branch === 5 &&

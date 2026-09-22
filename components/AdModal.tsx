@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { Platform } from "react-native";
-import { useInterstitialAd } from "@/hooks/useInterstitialAd";
+import { useAds } from "@/components/AdsProvider";
 
 type Props = {
   visible: boolean;
@@ -14,12 +14,14 @@ type Props = {
  * running in Expo Go/web), the game continues immediately.
  */
 export function AdModal({ visible, onDismiss }: Props) {
-  const { showInterstitial } = useInterstitialAd();
+  const { showInterstitial, resetInterstitial } = useAds();
   const showInterstitialRef = useRef(showInterstitial);
+  const resetInterstitialRef = useRef(resetInterstitial);
   const hasPresentedRef = useRef(false);
   const hasCompletedRef = useRef(false);
   const dismissRef = useRef(onDismiss);
   showInterstitialRef.current = showInterstitial;
+  resetInterstitialRef.current = resetInterstitial;
   dismissRef.current = onDismiss;
 
   useEffect(() => {
@@ -32,14 +34,16 @@ export function AdModal({ visible, onDismiss }: Props) {
 
     hasPresentedRef.current = true;
     hasCompletedRef.current = false;
-    // Give the native SDK a short window to finish loading. Previously a
-    // not-yet-loaded ad was skipped immediately, which made both game-boundary
-    // placements disappear on faster devices and fresh app launches.
+    // AdsProvider starts loading at app startup. Keep a short retry window for
+    // slow networks without blocking the game indefinitely when AdMob has no
+    // fill or the device is offline.
     let retryTimer: ReturnType<typeof setTimeout> | undefined;
+    let presentationTimer: ReturnType<typeof setTimeout> | undefined;
     const completeOnce = () => {
       if (hasCompletedRef.current) return;
       hasCompletedRef.current = true;
       if (retryTimer) clearTimeout(retryTimer);
+      if (presentationTimer) clearTimeout(presentationTimer);
       dismissRef.current();
     };
 
@@ -61,12 +65,18 @@ export function AdModal({ visible, onDismiss }: Props) {
         }
         return;
       }
-
+      // Native CLOSED/ERROR should complete the placement. This watchdog keeps
+      // navigation recoverable if the SDK fails to emit either terminal event.
+      presentationTimer = setTimeout(() => {
+        resetInterstitialRef.current();
+        completeOnce();
+      }, 90_000);
     };
 
     tryPresent();
     return () => {
       if (retryTimer) clearTimeout(retryTimer);
+      if (presentationTimer) clearTimeout(presentationTimer);
       hasCompletedRef.current = true;
     };
   }, [visible]);

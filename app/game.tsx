@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useGame } from "@/context/GameContext";
@@ -139,7 +139,7 @@ export default function GameScreen() {
       </ScrollView>
 
       <QuestionModal />
-      <Modal visible={!!endGameResult} transparent animationType="fade" statusBarTranslucent>
+      {!!endGameResult && !showEndAd && (
         <View style={styles.completionOverlay}>
           <View style={styles.completionCard}>
             <Text style={styles.completionTitle}>
@@ -150,7 +150,7 @@ export default function GameScreen() {
             </Text>
           </View>
         </View>
-      </Modal>
+      )}
       <AdModal visible={showEndAd} onDismiss={handleEndAdDismiss} skipDelay={5} />
     </View>
   );

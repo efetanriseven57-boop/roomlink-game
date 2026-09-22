@@ -16,6 +16,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { AdsProvider } from "@/components/AdsProvider";
 import { GameProvider } from "@/context/GameContext";
 import { LanguageProvider } from "@/context/LanguageContext";
 import { useBackgroundMusic } from "@/hooks/useBackgroundMusic";
@@ -113,8 +114,10 @@ export default function RootLayout() {
              <ClerkLoaded>
               <LanguageProvider>
                 <GameProvider>
-                  <MusicController />
-                  <RootLayoutNav />
+                   <AdsProvider>
+                     <MusicController />
+                     <RootLayoutNav />
+                   </AdsProvider>
                 </GameProvider>
               </LanguageProvider>
              </ClerkLoaded>

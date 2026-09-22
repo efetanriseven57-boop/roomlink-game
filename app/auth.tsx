@@ -14,7 +14,7 @@ const LANGS: { code: LangCode; flag: string }[] = [
   { code: "it", flag: "🇮🇹" }, { code: "ar", flag: "🇸🇦" },
 ];
 
-const PASSWORD_MIN_LENGTH = 15;
+const PASSWORD_MIN_LENGTH = 8;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 type AuthMode = "signIn" | "signUp";
@@ -42,7 +42,6 @@ function translateClerkError(error: unknown, lang: LangCode): string {
   const messages: Record<string, string> = {
     form_identifier_not_found: "Bu e-posta adresiyle kayıtlı bir hesap bulunamadı.",
     form_password_incorrect: "E-posta adresi veya parola hatalı.",
-    form_password_length_too_short: `Parola en az ${PASSWORD_MIN_LENGTH} karakter olmalıdır.`,
     form_password_length_too_long: "Parola izin verilen uzunluğu aşıyor.",
     form_password_pwned: "Bu parola daha önce veri ihlallerinde görülmüş. Lütfen farklı ve güçlü bir parola seçin.",
     form_identifier_exists: "Bu e-posta adresiyle daha önce hesap oluşturulmuş.",
@@ -52,12 +51,12 @@ function translateClerkError(error: unknown, lang: LangCode): string {
     too_many_requests: "Çok fazla deneme yapıldı. Lütfen bir süre bekleyip yeniden deneyin.",
     session_exists: "Bu cihazda zaten açık bir oturum var.",
   };
-  if (messages[code]) return messages[code];
-
   const normalized = message.toLocaleLowerCase("en-US");
-  if (normalized.includes("password") && normalized.includes("15")) {
-    return `Parola en az ${PASSWORD_MIN_LENGTH} karakter olmalıdır.`;
+  const reportedMinimum = normalized.match(/(?:at least|minimum of)\s+(\d+)/)?.[1];
+  if (code === "form_password_length_too_short") {
+    return `Parola en az ${reportedMinimum ?? PASSWORD_MIN_LENGTH} karakter olmalıdır.`;
   }
+  if (messages[code]) return messages[code];
   if (normalized.includes("password") && (normalized.includes("incorrect") || normalized.includes("invalid"))) {
     return "E-posta adresi veya parola hatalı.";
   }
